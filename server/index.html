@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>POST Request Demo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .form-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #response {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+            white-space: pre-wrap;
+        }
+        .error {
+            color: red;
+            background-color: #ffebee;
+            border: 1px solid #ffcdd2;
+        }
+        .success {
+            color: green;
+            background-color: #e8f5e9;
+            border: 1px solid #c8e6c9;
+        }
+    </style>
+</head>
+<body>
+    <h1>POST Request Demo</h1>
+
+    <div class="form-section">
+        <h2>Form Data POST</h2>
+        <form id="urlEncodedForm" onsubmit="submitFormData(event)">
+            <div class="form-group">
+                <label for="name">Name:</label>
+                <input type="text" id="name" name="name" required>
+            </div>
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="text" id="email" name="email" required>
+            </div>
+            <button type="submit">Submit Form Data</button>
+        </form>
+    </div>
+
+    <div class="form-section">
+        <h2>Raw Data POST</h2>
+        <div class="form-group">
+            <label for="rawData">Raw Data:</label>
+            <textarea id="rawData" rows="4" placeholder="Enter raw data to send"></textarea>
+        </div>
+        <button onclick="submitRawData()">Submit Raw Data</button>
+    </div>
+
+    <div id="response"></div>
+
+    <script>
+        function showResponse(message, isError = false) {
+            const responseDiv = document.getElementById('response');
+            responseDiv.textContent = message;
+            responseDiv.className = isError ? 'error' : 'success';
+        }
+
+        async function submitFormData(event) {
+            event.preventDefault();
+            const form = document.getElementById('urlEncodedForm');
+            const formData = new FormData(form);
+            const data = new URLSearchParams(formData).toString();
+
+            try {
+                showResponse('Sending request...');
+                const response = await fetch('http://localhost:8080/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: data
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const responseText = await response.text();
+                showResponse(responseText);
+                form.reset(); // Clear form on success
+            } catch (error) {
+                showResponse(`Error: ${error.message}. Make sure the server is running on port 8080.`, true);
+            }
+        }
+
+        async function submitRawData() {
+            const rawData = document.getElementById('rawData').value;
+            if (!rawData.trim()) {
+                showResponse('Please enter some data to send', true);
+                return;
+            }
+
+            try {
+                showResponse('Sending request...');
+                const response = await fetch('http://localhost:8080/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'text/plain',
+                    },
+                    body: rawData
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const responseText = await response.text();
+                showResponse(responseText);
+                document.getElementById('rawData').value = ''; // Clear textarea on success
+            } catch (error) {
+                showResponse(`Error: ${error.message}. Make sure the server is running on port 8080.`, true);
+            }
+        }
+    </script>
+</body>
+</html>
